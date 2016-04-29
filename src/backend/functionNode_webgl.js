@@ -841,5 +841,235 @@ var functionNode_webgl = (function() {
 		// );
 	}
 
+	/// Prints a type variable. Types are of the following forms:
+	///
+	/// {type: 'term', value: 'float'}
+	/// {type: 'mono', value: 'a'}
+	/// {type: 'constr', name: 'list', args: [ ... more types ]}
+	///
+	/// Arrow and polytypes are not yet supported.
+	///
+	/// @param type
+	/// @return string representation of the type
+	function printType(type) {
+	    switch (type.type) {
+	    case 'term':
+	        return type.value;
+	    case 'mono':
+	        return "'" + type.value;
+	    case 'constr':
+	        return type.name + '(' + type.args.map(printType).join(', ') + ')';
+	    case 'var':
+	        return "~" + type.value;
+	    case 'arrow':
+	        return type.args.map(printType).join(' -> ');
+	    default:
+	        throw 'unrecognised type ' + JSON.stringify(type);
+	    }
+	}
+
+	/// Destructively unifies two types, throwing if that fails.
+	///
+	/// @param t1
+	/// @param t2
+	/// @return nothing
+	function unify(t1, t2) {
+	    if (t1.type === 'term' && t2.type === 'term') {
+	        if (t1.value !== t2.value) {
+	            throw 'could not unify ' + printType(t1) + ' and ' + printType(t2);
+	        }
+	    } else if (t1.type === 'constr' && t2.type === 'constr') {
+	        if (t1.name !== t2.name || t1.args.length !== t2.args.length) {
+	            throw 'could not unify constructors ' + printType(t1) + ' and ' + printType(t2);
+	        }
+	        for (var i=0; i<t1.args.length; i++) {
+	            unify(t1.args[i], t2.args[i]);
+	        }
+	    } else if (t1.type === 'mono' && t2.type === 'mono') {
+	        if (t1.value === t2.value) {
+	            throw 'there can only be a single instance of a monotype'
+	        }
+	    } else if (t1.type === 'mono') {
+	        if (t2.type !== 'mono') {
+	            // TODO there's probably a better way to do this
+	            Object.keys(t1).forEach(function (key) {
+	                delete t1[key];
+	            });
+	            Object.keys(t2).forEach(function (key) {
+	                t1[key] = t2[key];
+	            });
+	        } else {
+	            console.assert(false);
+	        }
+	    } else if (t2.type === 'mono') {
+	        unify(t2, t1);
+	    } else {
+	        throw 'could not unify ' + JSON.stringify(t1) + ' and ' + JSON.stringify(t2);
+	    }
+	}
+
+	function fresh() {
+	    return fresh.ness++;
+	}
+	fresh.ness = 0;
+
+	/// Infers types of an AST subtree given a context, mutating it with types.
+	///
+	/// Contexts are just (string, type) mappings, and an empty object is
+	/// suitable when calling this for the first time. It is mutated as we go.
+	///
+	/// @param ast          AST subtree to infer types for
+	/// @param env          context
+	/// @returns            nothing
+	function infer(ast, env) {
+	    if(ast === null) {
+	        throw ast_errorOutput("NULL ast", ast, funcParam);
+	    }
+
+	    if (Array.isArray(ast)) {
+	        ast.forEach(function (node) {
+	            infer(node, env);
+	        });
+	        return;
+	    }
+
+	    switch(ast.type) {
+	    case "FunctionDeclaration":
+	    case "FunctionExpression":
+	        ast.params.forEach(function (a) {
+	            env[a.name] = {type: 'mono', value: fresh()};
+	        });
+	        infer(ast.body, env);
+	        break;
+	    case "Literal":
+	        if (typeof ast.value === 'boolean') {
+	            ast.inferred_type = {type: 'term', value: 'bool'};
+	        } else {
+	            ast.inferred_type = {type: 'term', value: 'float'};
+	        }
+	        break;
+	    case "Identifier":
+	        if (env[ast.name]) {
+	            ast.inferred_type = env[ast.name];
+	        } else {
+	            throw ast.name + ' does not seem to have been defined yet!';
+	        }
+	        break;
+	    case "VariableDeclaration":
+	        ast.declarations.forEach(function (v) {
+	            infer(v, env);
+	        });
+	        break;
+	    case "VariableDeclarator":
+	        infer(ast.init, env);
+	        if (env[ast.id.name]) {
+	            unify(env[ast.id.name], ast.init.inferred_type);
+	        } else {
+	            env[ast.id.name] = ast.init.inferred_type;
+	        }
+	        break;
+	    case "BinaryExpression":
+	        switch (ast.operator) {
+	        case '+':
+	        case '-':
+	            infer(ast.left, env);
+	            infer(ast.right, env);
+	            unify(ast.left.inferred_type, {type: 'term', value: 'float'});
+	            unify(ast.right.inferred_type, {type: 'term', value: 'float'});
+	            ast.inferred_type = {type: 'term', value: 'float'};
+	            break;
+	        default:
+	            throw 'operator ' + ast.operator + ' not yet supported in binary expression'
+	        }
+	        break;
+	    case "LogicalExpression":
+	        switch (ast.operator) {
+	        case '&&':
+	        case '||':
+	            infer(ast.left, env);
+	            infer(ast.right, env);
+	            unify(ast.left.inferred_type, {type: 'term', value: 'bool'});
+	            unify(ast.right.inferred_type, {type: 'term', value: 'bool'});
+	            ast.inferred_type = {type: 'term', value: 'bool'};
+	            break;
+	        default:
+	            throw 'operator ' + ast.operator + 'not yet supported in logical expression';
+	        }
+	        break;
+	    case "MemberExpression":
+	        if (ast.computed) {
+	            infer(ast.object, env);
+	            var inner = {type: 'mono', value: fresh()};
+	            unify(ast.object.inferred_type, {
+	                type: 'constr',
+	                name: 'array',
+	                args: [inner]
+	            });
+	            infer(ast.property, env);
+	            unify(ast.property.inferred_type, {type: 'term', value: 'float'})
+	            ast.inferred_type = inner;
+	        } else {
+	            switch (ast.property.name) {
+	            case 'x': case 'y': case 'z': case 'w':
+	                infer(ast.object, env);
+	                if (ast.object.inferred_type.type === 'constr') {
+	                    switch (ast.object.inferred_type.name) {
+	                    case 'vec2':
+	                        if (ast.property.name === 'z' || ast.property.name === 'w') {
+	                            throw 'vec2 cannot be indexed with .' + ast.property.name;
+	                        }
+	                        ast.inferred_type = ast.object.inferred_type.args[0];
+	                        break;
+	                    }
+	                } else {
+	                    throw 'cannot use .' + ast.property.name + ' to index a ' + printType(ast.object.inferred_type);
+	                }
+	                break;
+	            default:
+	                throw 'arbitrary property access (.' + ast.property.name + ') is not yet supported'
+	            }
+	        }
+	        break;
+	    case "CallExpression":
+	        // TODO generalise for user-defined functions
+	        switch (ast.callee.name) {
+	        case 'vec2':
+	            if (ast.arguments.length !== 2) {
+	                throw 'invalid number of args for function ' + ast.callee.name;
+	            }
+	            var v = {type: 'mono', value: fresh()};
+	            ast.arguments.forEach(function (arg) {
+	                infer(arg, env);
+	                unify(arg.inferred_type, v);
+	            });
+	            ast.inferred_type = {type: 'constr', name: 'vec2', args: [v]};
+	            break;
+	        default:
+	            throw 'unrecognised function ' + ast.callee.name;
+	        }
+	        break;
+	    case "AssignmentExpression":
+	        infer(ast.left, env);
+	        infer(ast.right, env);
+	        unify(ast.left.inferred_type, ast.right.inferred_type);
+	        break;
+	    case "BlockStatement":
+	        infer(ast.body, env);
+	        break;
+	    case "ExpressionStatement":
+	        infer(ast.expression, env);
+	        break;
+	    case "ReturnStatement":
+	        infer(ast.argument, env);
+	        break;
+	    case "EmptyStatement":
+	    case "BreakStatement":
+	    case "ContinueStatement":
+	        break;
+	    default:
+	        throw '// not implemented: ' + ast.type + ' ' + JSON.stringify(ast);
+	    }
+	}
+
 	return functionNode_webgl;
 })();
