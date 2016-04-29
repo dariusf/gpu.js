@@ -43,6 +43,15 @@ var functionNode_webgl = (function() {
 			console.log(inNode);
 		}
 		jsFunctionString = inNode.jsFunctionString;
+
+		var env = {};
+		infer(inNode.getJS_AST(), env);
+		Object.keys(env).forEach(function (key) {
+		    console.log(key + ':', printType(env[key]));
+		});
+
+		throw 'all good!';
+
 		if (opt.prototypeOnly) {
 			return ast_FunctionPrototype( inNode.getJS_AST(), [], inNode ).join("").trim();
 		} else {

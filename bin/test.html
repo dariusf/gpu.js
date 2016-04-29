@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>test page</title>
+</head>
+<body>
+    <script type="text/javascript" src='gpu.js'></script>
+    <script type="text/javascript">
+
+        var gpu = new GPU();
+
+        var size = 4;
+
+        var mat_mult = gpu.createKernel(function(A, B) {
+            var b = true;
+            var a = vec2(1, 2);
+            var c = vec2(b, b);
+            A[1][2] = a.x;
+            B[2][a.x] = b;
+            var d = true || true;
+            var e = 1 + 1;
+        }).dimensions([size, size]);
+
+        var A = null;
+        var B = null;
+        var C = mat_mult(A, B);
+
+    </script>
+</body>
+</html>
