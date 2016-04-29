@@ -1591,23 +1591,43 @@ function ProgramNode(body, loc) {
     this.type = "Program";
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitProgram(self);
+    };
 }
 
 function EmptyStatementNode(loc) {
     this.type = "EmptyStatement";
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitEmptyStatement(self);
+    };
 }
 
 function BlockStatementNode(body, loc) {
     this.type = "BlockStatement";
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitBlockStatement(self);
+    };
 }
 
 function ExpressionStatementNode(expression, loc) {
     this.type = "ExpressionStatement";
     this.expression = expression;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitExpressionStatement(self);
+    };
 }
 
 function IfStatementNode(test, consequent, alternate, loc) {
@@ -1616,6 +1636,11 @@ function IfStatementNode(test, consequent, alternate, loc) {
     this.consequent = consequent;
     this.alternate = alternate;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitIfStatement(self);
+    };
 }
 
 function LabeledStatementNode(label, body, loc) {
@@ -1623,18 +1648,33 @@ function LabeledStatementNode(label, body, loc) {
     this.label = label;
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitLabeledStatement(self);
+    };
 }
 
 function BreakStatementNode(label, loc) {
     this.type = "BreakStatement";
     this.label = label;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitBreakStatement(self);
+    };
 }
 
 function ContinueStatementNode(label, loc) {
     this.type = "ContinueStatement";
     this.label = label;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitContinueStatement(self);
+    };
 }
 
 function WithStatementNode(object, body, loc) {
@@ -1642,6 +1682,11 @@ function WithStatementNode(object, body, loc) {
     this.object = object;
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitWithStatement(self);
+    };
 }
 
 function SwitchStatementNode(discriminant, cases, loc) {
@@ -1649,18 +1694,33 @@ function SwitchStatementNode(discriminant, cases, loc) {
     this.discriminant = discriminant;
     this.cases = cases;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitSwitchStatement(self);
+    };
 }
 
 function ReturnStatementNode(argument, loc) {
     this.type = "ReturnStatement";
     this.argument = argument;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitReturnStatement(self);
+    };
 }
 
 function ThrowStatementNode(argument, loc) {
     this.type = "ThrowStatement";
     this.argument = argument;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitThrowStatement(self);
+    };
 }
 
 function TryStatementNode(block, handlers, finalizer, loc) {
@@ -1669,6 +1729,11 @@ function TryStatementNode(block, handlers, finalizer, loc) {
     this.handlers = handlers; // Multiple catch clauses are SpiderMonkey specific
     this.finalizer = finalizer;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitTryStatement(self);
+    };
 }
 
 function WhileStatementNode(test, body, loc) {
@@ -1676,6 +1741,11 @@ function WhileStatementNode(test, body, loc) {
     this.test = test;
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitWhileStatement(self);
+    };
 }
 
 function DoWhileStatementNode(body, test, loc) {
@@ -1683,6 +1753,11 @@ function DoWhileStatementNode(body, test, loc) {
     this.body = body;
     this.test = test;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitDoWhileStatement(self);
+    };
 }
 
 function ForStatementNode(init, test, update, body, loc) {
@@ -1692,6 +1767,11 @@ function ForStatementNode(init, test, update, body, loc) {
     this.update = update;
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitForStatement(self);
+    };
 }
 
 function ForInStatementNode(left, right, body, loc) {
@@ -1700,11 +1780,21 @@ function ForInStatementNode(left, right, body, loc) {
     this.right = right;
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitForInStatement(self);
+    };
 }
 
 function DebugggerStatementNode(loc) {
     this.type = "DebuggerStatement";
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitDebugggerStatement(self);
+    };
 }
 
 function FunctionDeclarationNode(id, params, body, generator, expression, loc) {
@@ -1715,6 +1805,11 @@ function FunctionDeclarationNode(id, params, body, generator, expression, loc) {
     this.generator = generator;
     this.expression = expression;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitFunctionDeclaration(self);
+    };
 }
 
 function VariableDeclarationNode(declarations, kind, loc) {
@@ -1722,6 +1817,11 @@ function VariableDeclarationNode(declarations, kind, loc) {
     this.declarations = declarations;
     this.kind = kind;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitVariableDeclaration(self);
+    };
 }
 
 function VariableDeclaratorNode(id, init, loc) {
@@ -1729,23 +1829,43 @@ function VariableDeclaratorNode(id, init, loc) {
     this.id = id;
     this.init = init;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitVariableDeclarator(self);
+    };
 }
 
 function ThisExpressionNode(loc) {
     this.type = "ThisExpression";
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitThisExpression(self);
+    };
 }
 
 function ArrayExpressionNode(elements, loc) {
     this.type = "ArrayExpression";
     this.elements = elements;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitArrayExpression(self);
+    };
 }
 
 function ObjectExpressionNode(properties, loc) {
     this.type = "ObjectExpression";
     this.properties = properties;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitObjectExpression(self);
+    };
 }
 
 function FunctionExpressionNode(id, params, body, generator, expression, loc) {
@@ -1756,12 +1876,22 @@ function FunctionExpressionNode(id, params, body, generator, expression, loc) {
     this.generator = generator;
     this.expression = expression;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitFunctionExpression(self);
+    };
 }
 
 function SequenceExpressionNode(expressions, loc) {
     this.type = "SequenceExpression";
     this.expressions = expressions;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitSequenceExpression(self);
+    };
 }
 
 function UnaryExpressionNode(operator, prefix, argument, loc) {
@@ -1770,6 +1900,11 @@ function UnaryExpressionNode(operator, prefix, argument, loc) {
     this.prefix = prefix;
     this.argument = argument;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitUnaryExpression(self);
+    };
 }
 
 function BinaryExpressionNode(operator, left, right, loc) {
@@ -1778,6 +1913,11 @@ function BinaryExpressionNode(operator, left, right, loc) {
     this.left = left;
     this.right = right;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitBinaryExpression(self);
+    };
 }
 
 function AssignmentExpressionNode(operator, left, right, loc) {
@@ -1786,6 +1926,11 @@ function AssignmentExpressionNode(operator, left, right, loc) {
     this.left = left;
     this.right = right;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitAssignmentExpression(self);
+    };
 }
 
 function UpdateExpressionNode(operator, argument, prefix, loc) {
@@ -1794,6 +1939,11 @@ function UpdateExpressionNode(operator, argument, prefix, loc) {
     this.argument = argument;
     this.prefix = prefix;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitUpdateExpression(self);
+    };
 }
 
 function LogicalExpressionNode(operator, left, right, loc) {
@@ -1802,6 +1952,11 @@ function LogicalExpressionNode(operator, left, right, loc) {
     this.left = left;
     this.right = right;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitLogicalExpression(self);
+    };
 }
 
 function ConditionalExpressionNode(test, consequent, alternate, loc) {
@@ -1810,6 +1965,11 @@ function ConditionalExpressionNode(test, consequent, alternate, loc) {
     this.consequent = consequent;
     this.alternate = alternate;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitConditionalExpression(self);
+    };
 }
 
 function NewExpressionNode(callee, args, loc) {
@@ -1817,6 +1977,11 @@ function NewExpressionNode(callee, args, loc) {
     this.callee = callee;
     this.arguments = args;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitNewExpression(self);
+    };
 }
 
 function CallExpressionNode(callee, args, loc) {
@@ -1824,6 +1989,11 @@ function CallExpressionNode(callee, args, loc) {
     this.callee = callee;
     this.arguments = args;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitCallExpression(self);
+    };
 }
 
 function MemberExpressionNode(object, property, computed, loc) {
@@ -1832,6 +2002,11 @@ function MemberExpressionNode(object, property, computed, loc) {
     this.property = property;
     this.computed = computed;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitMemberExpression(self);
+    };
 }
 
 function SwitchCaseNode(test, consequent, loc) {
@@ -1839,6 +2014,11 @@ function SwitchCaseNode(test, consequent, loc) {
     this.test = test;
     this.consequent = consequent;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitSwitchCase(self);
+    };
 }
 
 function CatchClauseNode(param, body, loc) {
@@ -1847,18 +2027,33 @@ function CatchClauseNode(param, body, loc) {
     this.guard = null; /* Firefox specific */
     this.body = body;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitCatchClause(self);
+    };
 }
 
 function IdentifierNode(name, loc) {
     this.type = "Identifier";
     this.name = name;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitIdentifier(self);
+    };
 }
 
 function LiteralNode(value, loc) {
     this.type = "Literal";
     this.value = value;
     this.loc = loc;
+
+    var self = this;
+    this.accept = function(v) {
+        v.visitLiteral(self);
+    };
 }
 
 function SourceLocation(source, start, end) {
